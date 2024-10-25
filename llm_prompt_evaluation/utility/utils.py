@@ -84,8 +84,8 @@ def load_dataset_from_csv(upload_path, delimiter=";", quoting=csv.QUOTE_NONE, en
     df["Risposta SQL Attesa"] = df["Richiesta Utente"]
     df["Richiesta Utente"] = df.index
     df.reset_index(drop=True, inplace=True)
-    df = df.iloc[:3]
-    df.reset_index(drop=True, inplace=True)
+    # df = df.iloc[:3]
+    # df.reset_index(drop=True, inplace=True)
 
     return df
 
