@@ -4,7 +4,10 @@
 # MODEL = "incept5/llama3.1-claude"                     # per Ollama in locale se scaricato
 MODEL = "anthropic.claude-3-haiku-20240307-v1:0"
 MODEL_TYPE = "BEDROCK"
-TEMPERATURE = 0
+TEMPERATURE = 0.1
+TOP_K = 20
+TOP_P = 0.3
+MAX_TOKENS = 4096
 USE_HISTORY = True
 SIMILARITY_THRESHOLD = 0.7
 SIMILARITY_EMBEDDING_THRESHOLD = 0.7

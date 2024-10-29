@@ -30,8 +30,9 @@ if uploaded_file is not None:
         df.reset_index(drop=True, inplace=True)
         st.write(df)  # Visualizza i dati caricati
         st.session_state.button_disabled = False
+
     except Exception as e:
-        logger.error("Errore nel caricamento del file CSV: {}".format(uploaded_file))
+        logger.error("Errore nel caricamento del file CSV: {}".format(e))
         st.error("Errore nel caricamento del file CSV.")
 
 
@@ -222,7 +223,7 @@ def main():
     # inizializza la callback delle metriche
     metric_callbacks = mp.MetricsCallback(df, logger)
 
-    if st.button("🚀 Run", disabled=st.session_state.button_disabled):
+    if st.button("Run", disabled=st.session_state.button_disabled):
         # Nasconde i risultati
         st.session_state.show_results = False
         # Disabilita il bottone

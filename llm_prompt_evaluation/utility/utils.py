@@ -128,8 +128,9 @@ def routing_model(model_id, model_type="BEDROCK", metric_callbacks=None):
         # Inizializza il modello LLM
         model = ChatBedrock(model_id=model_id,
                             client=bedrock_client,
-                            model_kwargs={"temperature": config.TEMPERATURE},
-                            callbacks=metric_callbacks
+                            callbacks=metric_callbacks,
+                            inferenceConfig={"maxTokens": config.MAX_TOKENS, "temperature": config.TEMPERATURE},
+                            additionalModelRequestFields={"top_p": config.TOP_P, "top_k": config.TOP_K}
                             )
         # Inizializza il modello Bedrock embeddings
         embeddings_model = BedrockEmbeddings()
