@@ -50,7 +50,7 @@ class MetricsCallback(BaseCallbackHandler):
             elapsed_time = time.time() - self.start_time  # Tempo impiegato
             message = response.generations[0][0].message
             # gestione del body
-            if "body:" not in message.content and "error:" not in message.content:
+            if '"body":' not in message.content and '"error":' not in message.content:
                 original_response = message.content
             else:
                 content = json.loads(message.content
@@ -233,6 +233,7 @@ class MetricsCallback(BaseCallbackHandler):
         accuracy = accuracy_score([1 if r else 0 for r in self.relevance_scores], [1] * len(self.relevance_scores))
         total_response = len(self.success_responses) + len(self.error_responses) + len(self.error_responses_model)
 
+        self.logger.info("\n\nMetrics:\n")
         self.logger.info("Average Response Time (seconds): {:.2f}".format(average_time))
         self.logger.info("Max Response Time (seconds): {:.2f}".format(max_time))
         self.logger.info("Total Time (seconds): {:.2f}".format(total_time))
@@ -246,24 +247,24 @@ class MetricsCallback(BaseCallbackHandler):
         self.logger.info("Success Response Count: {}".format(len(self.success_responses)))
         self.logger.info("Error Response Count: {}".format(len(self.error_responses)))
         self.logger.info("Error Response Model Count: {}".format(len(self.error_responses_model)))
-        self.logger.info("Success Responses Percentage: {}".format(len(self.success_responses) / total_response * 100))
+        self.logger.info("Success Responses Percentage: {:.2f}".format(len(self.success_responses) / total_response * 100))
         self.logger.info(
-            "Error Responses Model Percentage: {}".format(len(self.error_responses_model) / total_response * 100))
+            "Error Responses Model Percentage: {:.2f}".format(len(self.error_responses_model) / total_response * 100))
         self.logger.info("Success Responses: {}".format(self.success_responses))
         self.logger.info("Error Responses: {}".format(self.error_responses))
-        self.logger.info("Error Responses Model: {}".format(self.error_responses))
+        self.logger.info("Error Responses Model: {}".format(self.error_responses_model))
         self.logger.info("Success similarity Count: {}".format(self.success_similarity_count))
         self.logger.info("Error similarity Count: {}".format(self.error_similarity_count))
         if self.success_similarity_count + self.error_similarity_count > 0:
             self.logger.info("Success Similarity Percentage: {:.2f}".format(
-                self.success_similarity_count / (self.success_similarity_count + self.error_similarity_count) * 100))
+                self.success_similarity_count / total_response * 100))
         else:
             self.logger.info("Success Similarity Percentage: 0")
         self.logger.info("Embedding Relevance Success: {}".format(self.embedding_relevance_success))
         self.logger.info("Embedding Relevance Error: {}".format(total_response - self.embedding_relevance_success))
         if self.success_similarity_count + self.error_similarity_count > 0:
-            self.logger.info("Embedding Relevance Success Percentage: {}".format(
-                self.embedding_relevance_success / (self.success_similarity_count + self.error_similarity_count) * 100))
+            self.logger.info("Embedding Relevance Success Percentage: {:.2f}".format(
+                self.embedding_relevance_success / total_response * 100))
         else:
             self.logger.info("Embedding Relevance Success Percentage: 0")
         self.logger.info("Blue Score Success: {}".format(self.blue_score_success))
@@ -307,12 +308,10 @@ class MetricsCallback(BaseCallbackHandler):
             "error_responses_model": self.error_responses,
             "success_similarity_count": self.success_similarity_count,
             "error_similarity_count": self.error_similarity_count,
-            "success_similarity_percentage": round(self.success_similarity_count / (
-                        self.success_similarity_count + self.error_similarity_count) * 100, 2) if self.success_similarity_count + self.error_similarity_count > 0 else 0,
+            "success_similarity_percentage": round(self.success_similarity_count / total_response * 100, 2) if total_response > 0 else 0,
             "embedding_relevance_success": self.embedding_relevance_success,
             "embedding_relevance_error": total_response - self.embedding_relevance_success,
-            "embedding_relevance_success_percentage": round(self.embedding_relevance_success / (
-                        self.success_similarity_count + self.error_similarity_count) * 100, 2) if self.success_similarity_count + self.error_similarity_count > 0 else 0,
+            "embedding_relevance_success_percentage": round(self.embedding_relevance_success / total_response * 100, 2) if total_response > 0 else 0,
             "blue_score_success": self.blue_score_success,
             "rouge1_score_success": self.rouge1_score_success,
             "rouge2_score_success": self.rouge2_score_success,

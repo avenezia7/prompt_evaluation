@@ -17,6 +17,21 @@ logger = ut.setup_logger("LLM Prompt Evaluation")
 # Titolo principale
 st.title("Dashboard Verifica Prompt LLM")
 
+# Configurazioni modello
+st.write("Configurazioni Modello:")
+st.write(f"Nome modello: {conf.MODEL}")
+st.write(f"Tipo Modello: {conf.MODEL_TYPE}")
+st.write(f"Temperatura: {conf.TEMPERATURE}")
+st.write(f"Numero Max Token per richiesta: {conf.MAX_TOKENS}")
+st.write(f"Top K: {conf.TOP_K}")
+st.write(f"Top P: {conf.TOP_P}")
+st.write(f"Soglia similarità: {conf.SIMILARITY_THRESHOLD}")
+st.write(f"Soglia similarità embedding: {conf.SIMILARITY_EMBEDDING_THRESHOLD}")
+st.write(f"Soglia Blue: {conf.BLUE_THRESHOLD}")
+st.write(f"Soglia Rouge: {conf.ROUGE_THRESHOLD}")
+st.write(f"Costo per 1000 token di input: {conf.INPUT_COST_PER_TOKEN}")
+st.write(f"Costo per 1000 token di output: {conf.OUTPUT_COST_PER_TOKEN}")
+
 # Area per l'upload del CSV
 uploaded_file = st.file_uploader("Upload CSV", type=["csv"])
 df = None
@@ -25,10 +40,8 @@ df = None
 if uploaded_file is not None:
     try:
         df = ut.load_dataset_from_csv(uploaded_file)
-        df["Risposta SQL Attesa"] = df["Richiesta Utente"]
-        df["Richiesta Utente"] = df.index
-        df.reset_index(drop=True, inplace=True)
         st.write(df)  # Visualizza i dati caricati
+        logger.info(f"File CSV caricato con successo: {df.shape}")
         st.session_state.button_disabled = False
 
     except Exception as e:
@@ -43,12 +56,12 @@ def pie_chart(success_percentage, error_percentage, title):
             {
                 "label": "Percentage",
                 "data": [success_percentage, error_percentage],
-                "backgroundColor": ["#e74c3c", "#28b463"]
+                "backgroundColor": ["#28b463", "#e74c3c"]
             }
         ],
     }
 
-    st_chartjs(data=pie_chart_data, chart_type="pie", title=title, legend_position="top")
+    st_chartjs(data=pie_chart_data, chart_type="pie", title=title, legend_position="top", canvas_height=200, canvas_width=200)
 
 
 def generate_results(metrics_callback: MetricsCallback, total_time_col, average_time_col, max_time_col, total_token_col,
@@ -67,104 +80,77 @@ def generate_results(metrics_callback: MetricsCallback, total_time_col, average_
 
     with total_time_col:
         # Totale tempo di esecuzione
-        st.markdown(
-            "<h3 style='text-align: center; border: 2px solid green; padding: 10px;'>TOTALE TEMPO DI ESECUZIONE</h3>",
-            unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['total_time']}</h1>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align: center; border: 4px solid gray;  padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>TOTALE TEMPO DI ESECUZIONE</h3><h1 style='text-align: center;'>{metrics['total_time']}</h1></div>",
+                    unsafe_allow_html=True)
+        st.markdown(f"", unsafe_allow_html=True)
     with average_time_col:
         # Tempo medio di esecuzione
-        st.markdown(
-            "<h3 style='text-align: center; border: 2px solid green; padding: 10px;'>TEMPO MEDIO DI ESECUZIONE</h3>",
-            unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['average_time']}</h1>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align: center; border: 4px solid gray;  padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>TOTALE TEMPO MEDIO DI ESECUZIONE</h3><h1 style='text-align: center;'>{metrics['average_time']}</h1></div>",
+                    unsafe_allow_html=True)
     with max_time_col:
         # Tempo massimo di esecuzione
-        st.markdown(
-            "<h3 style='text-align: center; border: 2px solid green; padding: 10px;'>TEMPO MASSIMO DI ESECUZIONE</h3>",
-            unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['max_time']}</h1>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align: center; border: 4px solid gray;  padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>TEMPO MASSIMO DI ESECUZIONE</h3><h1 style='text-align: center;'>{metrics['max_time']}</h1></div>",
+                    unsafe_allow_html=True)
     with total_token_col:
         # Totale token
-        st.markdown("<h3 style='text-align: center; border: 2px solid green; padding: 10px;'>TOTALE TOKEN</h3>",
+        st.markdown(f"<div style='text-align: center; border: 4px solid gray;  padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>NUMERO TOTALE DI TOKEN</h3><h1 style='text-align: center;'>{metrics['total_tokens']}</h1></div>",
                     unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['total_tokens']}</h1>", unsafe_allow_html=True)
     with total_input_token_col:
         # Totale token di input
-        st.markdown(
-            "<h3 style='text-align: center; border: 2px solid green; padding: 10px;'>TOTALE TOKEN DI INPUT</h3>",
-            unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['total_input_tokens']}</h1>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align: center; border: 4px solid gray;  padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>NUMERO TOTALE TOKEN INPUT</h3><h1 style='text-align: center;'>{metrics['total_input_tokens']}</h1></div>",
+                    unsafe_allow_html=True)
     with total_output_token_col:
         # Totale token di output
-        st.markdown(
-            "<h3 style='text-align: center; border: 2px solid green; padding: 10px;'>TOTALE TOKEN DI OUTPUT</h3>",
-            unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['total_output_tokens']}</h1>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align: center; border: 4px solid gray;  padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>NUMERO TOTALE TOKEN OUTPUT</h3><h1 style='text-align: center;'>{metrics['total_output_tokens']}</h1></div>",
+                    unsafe_allow_html=True)
     with total_response_col:
         # Totale risposte
-        st.markdown("<h3 style='text-align: center; border: 2px solid green; padding: 10px;'>TOTALE RISPOSTE</h3>",
+        st.markdown(f"<div style='text-align: center; border: 4px solid gray; padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>TOTALE RISPOSTE</h3><h1 style='text-align: center;'>{metrics['total_response']}</h1></div>",
                     unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['total_response']}</h1>", unsafe_allow_html=True)
     with success_response_col:
         # Risposte corrette
-        st.markdown("<h3 style='text-align: center; border: 2px solid green; padding: 10px;'>RISULTATI CORRETTI</h3>",
+        st.markdown(f"<div style='text-align: center; border: 4px solid gray; padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>TOTALE RISPOSTE CORRETTE</h3><h1 style='text-align: center;'>{metrics['success_response_count']}</h1></div>",
                     unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['success_response_count']}</h1>", unsafe_allow_html=True)
     with error_response_col:
         # Risposte errate
-        st.markdown("<h3 style='text-align: center; border: 2px solid red; padding: 10px;'>RISULTATI ERRATI</h3>",
+        st.markdown(f"<div style='text-align: center; border: 4px solid gray; padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>TOTALE RISPOSTE SBAGLIATE</h3><h1 style='text-align: center;'>{metrics['error_response_count']}</h1></div>",
                     unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['error_response_count']}</h1>", unsafe_allow_html=True)
     with error_response_model_col:
         # Risposte errate modello
-        st.markdown(
-            "<h3 style='text-align: center; border: 2px solid red; padding: 10px;'>RISULTATI ERRATI MODELLO</h3>",
-            unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['error_response_model_count']}</h1>",
+        st.markdown(f"<div style='text-align: center; border: 4px solid gray; padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>RISPOSTE ERRATE DEL MODELLO</h3><h1 style='text-align: center;'>{metrics['error_response_model_count']}</h1></div>",
                     unsafe_allow_html=True)
     with success_similarity_col:
         # Risposte corrette simili
-        st.markdown(
-            "<h3 style='text-align: center; border: 2px solid green; padding: 10px;'>RISPOSTE CORRETTE SIMILI</h3>",
-            unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['success_similarity_count']}</h1>",
+        st.markdown(f"<div style='text-align: center; border: 4px solid gray; padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>RISPOSTE CORRETTE SIMILARITA'</h3><h1 style='text-align: center;'>{metrics['success_similarity_count']}</h1></div>",
                     unsafe_allow_html=True)
     with error_similarity_col:
         # Risposte errate simili
-        st.markdown("<h3 style='text-align: center; border: 2px solid red; padding: 10px;'>RISPOSTE ERRATE SIMILI</h3>",
+        st.markdown(f"<div style='text-align: center; border: 4px solid gray; padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>RISPOSTE SBAGLIATE SIMILARITA'</h3><h1 style='text-align: center;'>{metrics['error_similarity_count']}</h1></div>",
                     unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['error_similarity_count']}</h1>", unsafe_allow_html=True)
     with embedding_relevance_col:
         # Risposte rilevanti
-        st.markdown("<h3 style='text-align: center; border: 2px solid green; padding: 10px;'>RISPOSTE RILEVANTI</h3>",
-                    unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['embedding_relevance_success']}</h1>",
+        st.markdown(f"<div style='text-align: center; border: 4px solid gray; padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>RISPOSTE EMBADDING RILEVATE</h3><h1 style='text-align: center;'>{metrics['embedding_relevance_success']}</h1></div>",
                     unsafe_allow_html=True)
     with blue_score_col:
         # Blue score
-        st.markdown("<h3 style='text-align: center; border: 2px solid green; padding: 10px;'>BLUE SCORE</h3>",
+        st.markdown(f"<div style='text-align: center; border: 4px solid gray; padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>BLUE SCORE</h3><h1 style='text-align: center;'>{metrics['blue_score_success']}</h1></div>",
                     unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['blue_score_success']}</h1>", unsafe_allow_html=True)
     with rouge1_score_col:
         # Rouge1 score
-        st.markdown("<h3 style='text-align: center; border: 2px solid green; padding: 10px;'>ROUGE1 SCORE</h3>",
+        st.markdown(f"<div style='text-align: center; border: 4px solid gray; padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>ROUGE1 SCORE</h3><h1 style='text-align: center;'>{metrics['rouge1_score_success']}</h1></div>",
                     unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['rouge1_score_success']}</h1>", unsafe_allow_html=True)
     with rouge2_score_col:
         # Rouge2 score
-        st.markdown("<h3 style='text-align: center; border: 2px solid green; padding: 10px;'>ROUGE2 SCORE</h3>",
+        st.markdown(f"<div style='text-align: center; border: 4px solid gray; padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>ROUGE2 SCORE</h3><h1 style='text-align: center;'>{metrics['rouge2_score_success']}</h1></div>",
                     unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['rouge2_score_success']}</h1>", unsafe_allow_html=True)
     with rougeL_score_col:
         # RougeL score
-        st.markdown("<h3 style='text-align: center; border: 2px solid green; padding: 10px;'>ROUGEL SCORE</h3>",
+        st.markdown(f"<div style='text-align: center; border: 2px solid green;  padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>ROUGEL SCORE</h3><h1 style='text-align: center;'>{metrics['rougeL_score_success']}</h1></div>",
                     unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['rougeL_score_success']}</h1>", unsafe_allow_html=True)
     with overall_accuracy_col:
         # Overall accuracy
-        st.markdown("<h3 style='text-align: center; border: 2px solid green; padding: 10px;'>OVERALL ACCURACY</h3>",
+        st.markdown(f"<div style='text-align: center; border: 2px solid green;  padding: 10px; border-radius: 4px; margin-bottom: 8px;'><h3>OVERALL ACCCURANCY</h3><h1 style='text-align: center;'>{metrics['overall_accuracy']}</h1></div>",
                     unsafe_allow_html=True)
-        st.markdown(f"<h1 style='text-align: center;'>{metrics['overall_accuracy']}</h1>", unsafe_allow_html=True)
     with success_responses_percentage_col:
         # Percentuale risposte corrette
         pie_chart(metrics['success_responses_percentage'], metrics['error_responses_model_percentage'],
@@ -193,18 +179,17 @@ def reload_header_data(metrics_callback, col1_place_success, col2_place_error, c
     :param col3_place_total: total_responses
     :return:
     """
-    col1_place_success.write(f"<div style='border: 2px solid red; padding: 10px; text-align: center;'><h4>TOTALE NUMERO RISPOSTE ERRATE</h4><h1 style='color: red;'>{len(metrics_callback.success_responses)}</h1></div>",
-                             unsafe_allow_html=True)
-    col2_place_error.write(f"<div style='border: 2px solid green; padding: 10px; text-align: center;'><h4>TOTALE NUMERO RISPOSTE CORRETTE</h4><h1 style='color: green;'>{len(metrics_callback.error_responses)}</h1></div>",
+    col2_place_error.write(f"<div style='border: 2px solid green;  padding: 10px; border-radius: 4px; margin-bottom: 8px; text-align: center;'><h4>TOTALE NUMERO RISPOSTE CORRETTE</h4><h1 style='color: green;'>{len(metrics_callback.success_responses)}</h1></div>",
                            unsafe_allow_html=True)
+    col1_place_success.write(f"<div style='border: 2px solid red;  padding: 10px; border-radius: 4px; margin-bottom: 8px; text-align: center;'><h4>TOTALE NUMERO RISPOSTE ERRATE</h4><h1 style='color: red;'>{len(metrics_callback.error_responses)}</h1></div>",
+                             unsafe_allow_html=True)
     col3_place_total.write(
-        f"<div style='border: 2px solid gray; padding: 10px; text-align: center;'><h4>TOTALE NUMERO RISPOSTE ANALIZZATE</h4><h1 style='color: gray;'>{len(metrics_callback.success_responses) + len(metrics_callback.error_responses)}</h1></div>",
+        f"<div style='border: 2px solid gray;  padding: 10px; border-radius: 4px; margin-bottom: 8px; text-align: center;'><h4>TOTALE NUMERO RISPOSTE ANALIZZATE</h4><h1 style='color: gray;'>{len(metrics_callback.success_responses) + len(metrics_callback.error_responses)}</h1></div>",
         unsafe_allow_html=True)
 
 
 def main():
     # Creazione di 3 colonne per i risultati
-    col1, col2, col3 = st.columns(3)
     col1_place_success, col2_place_error, col3_place_total = st.empty(), st.empty(), st.empty()
 
     # Creazione dei grafici
@@ -229,7 +214,9 @@ def main():
         # Disabilita il bottone
         st.session_state.button_disabled = True
 
-        st.info("Elaborazione in corso...")
+        st.session_state["show_info"] = True
+        if st.session_state["show_info"]:
+            st.info("Elaborazione in corso...")
 
         # load model and embedding model
         model, embeddings_model = ut.routing_model(conf.MODEL, metric_callbacks=[metric_callbacks])
@@ -267,6 +254,7 @@ def main():
         for index, row in df.iterrows():
             logger.info("request: {}".format(row["Richiesta Utente"]))
             response = runnable_chain.invoke({"input": row["Richiesta Utente"]},
+                                             top_p=conf.TOP_P, top_k=conf.TOP_K,
                                              config={"metadata": {"index": index},
                                                      "configurable": {"session_id": "123"}})
             logger.info("result: {}".format(response.content))
@@ -285,6 +273,8 @@ def main():
 
         # Riabilita il bottone dopo l'attesa
         st.session_state.button_disabled = False
+        # disabilita info toolbar
+        st.session_state["show_info"] = False
 
 if "button_disabled" not in st.session_state:
     st.session_state.button_disabled = True

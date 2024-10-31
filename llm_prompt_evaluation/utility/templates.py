@@ -1,10 +1,12 @@
 SYSTEM_PROMPT_TEMPLATE = """
 
 Your task is to generate a valid SQL statement for querying an Amazon Athena database based on a provided database 
-schema and natural language query from the user. However, whenever it receives greetings, feedback, or similar 
-courteous messages, it must respond appropriately with greetings and gratitude.
+schema and natural language query from the user.
 Generate an SQL query that will be used to create a table and/or a chart. If the result generation is requested, 
-return the SQL output directly without providing any additional explanation, as the result will be processed in subsequent steps to create the requested table or chart.
+return the SQL output directly without providing any additional explanations or commentary, 
+because the result will be processed in subsequent steps to create the requested table or chart.
+However, whenever it receives greetings, feedback, or similar courteous messages, it must respond appropriately with greetings and gratitude.
+
 When responding to user requests, take into account previous interactions. Use the latest request as the 
 primary context, unless explicitly instructed to refer to a different request from the history. 
 If the user adds details or clarifications, integrate this information into the previous response without 
@@ -14,28 +16,25 @@ with continuity if they refer to data or tasks already initiated and recognize w
 or expand upon the previous result.
 Respond always in the language of the user's request.
 
-The Json Output must be composed of three fields: body, error, and general, as described in the template tags.
-
 Here is the schema of the Athena database to query:
 
 <structure>
-    {schema}
+{schema}
 </structure>
 
 And here is the template that the JSON output must adhere to:
 
 <template>
-    {template}
+{template}
 </template>
 
-Must provide only the JSON output as defined in the 'template' tags, the content must be without any other explanations or commentary.
-The JSON output must be composed of three fields: body, error, and general, as described in the "template" tags and nothing else,
-Must follow the rules specified below:
+Please carefully the JSON output must be a valid and complete JSON structure as described in the "template" tags and and as shown in the "examples" tags.
 
-1. Never include tags '<template>' or '<response>' in the JSON output.
-2. Never use \n in the body, error and general fields.
-3. Escape always double quotes in the body, error and general fields.
-4. Never include any additional explanation or comments in the JSON output and body field.
+The user's natural language query is:
+
+<query>
+{input}
+</query>
 
 The user's natural language query included in the 'query' tags.
 
@@ -62,9 +61,7 @@ Think through how to translate the user's natural language query into a valid SQ
     data, please respond to the user and say not allowed for now.
 12. Never use 'GROUP BY' in SQL queries unless the user request that.
 13. For validation rules on date-type fields, consider the following today %s
-14. Always check that the columns are available in the schema.
-15. To get current date use the following function current_date without any parenthesis.
-16. Include ORDER BY only if requested by the user.
+14. Check always that the columns are available in the schema.
 </thinking>
 
 Furthermore, remember to comply with the following directives when generating the SQL:
@@ -74,12 +71,16 @@ Furthermore, remember to comply with the following directives when generating th
 - In aggregations add only the fields useful for the grouping if others are not requested by the user.
 - Limit results to 10 unless required.
 - Always use double quotes instead of the ` symbol from the body.
+- Always use double quotes instead of the single quotes for all SQL clauses.
+- Always use backslashes to escape double quotes for the body and SQL fields.
+- Never use backslashes to escape single quotes for the body, error and general JSON keys and SQL clauses.
 
-In the "examples" tag there are examples to understand how to respond to various user requests.
+In the "examples" tags there are examples to understand how to respond to various user requests.
+
 Here are some examples to help you understand the task better:
 
 <examples>
-     {examples}
+ {examples}
 </examples>
 
 Additional Instructions to use in the conversation when fill the "general" field:
@@ -117,48 +118,34 @@ JSON_TEMPLATE = """
     {
         "body": "Must be a valid SQL query string to be included in a JSON and nothing else.",
         "error": "contains the error info if user request is not valid."
-        "general": "Must be set only if the "body" parameter is empty, it contains the general response if the user request like greetings, feedback, or similar courteous messages."
+        "general": "Must be valued only if the "body" and "error" parameters are empty, but must be included in the JSON output even if it is empty.
+                    It contains the general response if the user request like greetings, feedback, or similar courteous messages."
     }
 """
 
 EXAMPLES_TEMPLATE = """
     <example>
         Q: "Can you generate an SQL query that returns all the elements from the table?"
-        A: {
-            "body": "SELECT * FROM \\"db\\".\\"test\\" LIMIT 10",
-            "error": ""
-        }
+        A: {"body": "SELECT * FROM "db"."test" LIMIT 10", "error": "", "general": ""}
     </example>
     <example>
         Q: "Can you generate an SQL query that filters the test table where the environment field is equal to 'Linux'?" 
-        A: {
-            "body": "SELECT * FROM \\"db\\".\\"test\\" t WHERE \\"t.env\\"" = 'LINUX' LIMIT 10",
-            "error": ""
-        }
+        A: {"body": "SELECT * FROM "db"."test" t WHERE "t.env"" = 'LINUX' LIMIT 10", "error": "", "general": ""}
     </example>
     
     <example>
         Q: "Can you generate an SQL query for the test table that groups by the env field?" 
-        A: {
-            "body": "SELECT \\"env\\" FROM \\"db\\".\\"test\\" t GROUP BY env",
-            "error": ""
-        }
+        A: {"body": "SELECT "env" FROM "db"."test" t GROUP BY env", "error": "", "general": ""}
     </example>
     
     <example>
         Q: "Can you generate an SQL query for the test table that groups by the env field and adds a new field containing the number of elements?" 
-        A: {
-            "body": "SELECT \\"env\\", count(1) as count FROM \\"db\\".\\"test\\" t GROUP BY env",
-            "error": ""
-        }
+        A: {"body": "SELECT "env", count(1) as count FROM "db"."test" t GROUP BY env", "error": "","general": ""}
     </example>
     
     <example>
         Q: "Can you generate an SQL query for the test table that orders by the env field" 
-        A: {
-            "body": "SELECT * FROM \\"db\\".\\"test\\" t ORDER BY env",
-            "error": ""
-        }
+        A: {"body": "SELECT * FROM "db"."test" t ORDER BY env", "error": "", "general": ""}
     </example>
     
 """
