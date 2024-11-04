@@ -84,8 +84,8 @@ def load_dataset_from_csv(upload_path, delimiter=";", quoting=csv.QUOTE_NONE, en
     df["Risposta SQL Attesa"] = df["Richiesta Utente"]
     df["Richiesta Utente"] = df.index
     df.reset_index(drop=True, inplace=True)
-    df = df.iloc[:3]
-    df.reset_index(drop=True, inplace=True)
+    # df = df.iloc[:3]
+    # df.reset_index(drop=True, inplace=True)
 
     return df
 
@@ -129,8 +129,11 @@ def routing_model(model_id, model_type="BEDROCK", metric_callbacks=None):
         model = ChatBedrock(model_id=model_id,
                             client=bedrock_client,
                             callbacks=metric_callbacks,
-                            temperature=config.TEMPERATURE,                   # Imposta la temperatura (0.0 - 1.0)
-                            max_tokens=config.MAX_TOKENS,                     # Imposta il numero massimo di token
+                            model_kwargs={"temperature": config.TEMPERATURE,  # Imposta la temperatura (0.0 - 1.0)
+                                          "max_tokens": config.MAX_TOKENS,  # Imposta il numero massimo di token
+                                          "top_k": config.TOP_K,  # imposta il parametro top_k
+                                          "top_p": config.TOP_P,  # Imposta il parametro top_p
+                                          }
                             )
         # Inizializza il modello Bedrock embeddings
         embeddings_model = BedrockEmbeddings()

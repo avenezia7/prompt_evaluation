@@ -51,7 +51,6 @@ def main():
     for index, row in df.iterrows():
         logger.info("request: {}".format(row["Richiesta Utente"]))
         response = runnable_chain.invoke({"input": row["Richiesta Utente"]},
-                                         top_p=conf.TOP_P, top_k=conf.TOP_K,
                                          config={"metadata": {"index": index}, "configurable": {"session_id": "123"}})
         logger.info("result: {}".format(response.content))
 

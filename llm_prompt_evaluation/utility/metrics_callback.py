@@ -296,7 +296,7 @@ class MetricsCallback(BaseCallbackHandler):
             "total_output_tokens": total_output_tokens,
             "total_tokens": total_tokens,
             "total_cost": round(((total_input_tokens * INPUT_COST_PER_TOKEN) + (
-                        total_output_tokens * OUTPUT_COST_PER_TOKEN)) / 1000, 2),
+                        total_output_tokens * OUTPUT_COST_PER_TOKEN)) / 1000, 4),
             "total_response": total_response,
             "success_response_count": len(self.success_responses),
             "error_response_count": len(self.error_responses),
